@@ -1,1 +1,105 @@
+/*
+Execute Beyond Compare (version 1/28/2022)
 
+DESCRIPTION:
+* This script runs in XYplorer (an awesome file explorer).
+* In XYplorer, the user selects two files, and they are opened in the specified
+  program, e.g., Beyond Compare (an awesome file-compare tool).
+  (The program to use is hard-coded in the script.)
+
+EXAMPLE:
+* With Windows File-Explorer, Beyond Compare (BC) can be called by right-clicking 
+  on the two files to be compared, and they automatically get opened in BC, 
+  e.g., "Select left file to compare".
+  However, that feature does not appear to be available with XYplorer.
+* This script implements a similar feature in XYplorer: 
+  the files to be compared are selected, then opened in Beyond Compare.
+* The script can be edited so any program is called, instead of Beyond Compare.
+
+INSTALLATION and USE:
+
+How to use:
+	1.) Copy the script below in an file "..\scripts\BCompare.xys".
+	2.) Then, e.g., add an CTB toolbar button:
+		Name: BCompare
+		Icon: path\to\Beyond Compare 3\BCompare.exe
+		On Click: load BCompare;
+	3.) Select two files or folders in XY.
+	4.) execute this script.
+	5.) you are prompted with an menu
+    
+Additional documentation is in the original post for the script:
+https://www.xyplorer.com/xyfc/viewtopic.php?f=7&t=4420
+
+
+HISTORY:
+* 12/2009: This script was originally written by Stefan, and posted here:
+  https://www.xyplorer.com/xyfc/viewtopic.php?f=7&t=4420
+* 1/2022: The script was enhanced by Jim Yuill, to get one of the file-paths
+  from the clipboard.  Also, a bug was fixed in the call to the editor.
+  The code was put on GitHub:  https://github.com/jimyuill/Workstation-tools-for-Windows
+
+LICENSE (retained from original script):
+    This script is free software: you can redistribute and/or modify it.
+    This script is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+    If your computer implode or your files gets lose, don't blame me, so
+    please try this script first with some test files in an virtual machine.
+    
+*/
+
+// the script:
+
+"Run BCompare with..."
+   
+"... Current open Folders from L/R pane"
+     Global $ArgOne, $ArgTwo;
+     $ArgOne = <curpath>;
+     Focus "PI";
+     $ArgTwo = <curpath>;
+     Focus "PI";
+     Sub "_Execute";
+    
+"... Selected Files or Folders from L/R pane"
+     Global $ArgOne, $ArgTwo;
+     End ("<curitem>"==""),  "No file selected!"; //check if any file is selected
+     $ArgOne = <curitem>;
+     Focus "PI";
+     End ("<curitem>"==""),  "No file selected!"; //check if any file is selected
+     $ArgTwo = <curitem>;
+     Focus "PI";
+     Sub "_Execute";
+ 
+"... Selected Files or Folders from same pane"
+     Global $ArgOne, $ArgTwo;
+     $SelectedFiles = getinfo("SelectedItemsPathNames","|");
+     $ArgOne = gettoken($SelectedFiles, 1, "|");
+     $ArgTwo = gettoken($SelectedFiles, 2, "|");
+     Sub "_Execute";
+
+/*
+How to specify files to be compared:
+* For left-file to be compared: copy file-path to clipboard
+(XYplorer shortcut to copy file-path to clipboard: select file, ctrl+p)
+* In active pane, select right-file to be compared
+*/
+"... File-path in clipboard, and selected file in active pane"
+     Global $ArgOne, $ArgTwo;
+     $SelectedFiles = getinfo("SelectedItemsPathNames","|");
+     $ArgOne = <clp>;
+     $ArgTwo = gettoken($SelectedFiles, 1, "|");
+     Sub "_Execute";
+   
+"_Execute"
+     Global $ArgOne, $ArgTwo;
+     end (exists("C:\Program Files\Beyond Compare 4\BCompare.exe")=="0"), "BCompare.exe not found.<crlf>Edit script and check path."; 
+     run "C:\Program Files\Beyond Compare 4\BCompare.exe" "$ArgOne" "$ArgTwo"; 
+     //run "<xypath>\..\WinMerge\App\WinMerge\WinMergeU.exe" "$ArgOne" "$ArgTwo"; 
+-
+"Cancel"
+-
+"Edit this &script : edit"
+   //self $ScriptFile, file;
+   $ScriptFile= self ("file");
+   OpenWith "C:\Program Files\Notepad++\notepad++.exe", ,$ScriptFile;
